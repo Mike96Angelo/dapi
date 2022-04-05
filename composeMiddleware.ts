@@ -11,8 +11,8 @@ interface ComposeMiddleware {
   >;
 }
 
-export const composeMiddleware: ComposeMiddleware =
-  (middleware) => (request, context, next) => {
+export const composeMiddleware: ComposeMiddleware = (middleware) =>
+  (request, context, next) => {
     let index = 0;
 
     const nextMiddleware = () => {
@@ -33,14 +33,13 @@ interface WithMiddleware {
   // deno-lint-ignore no-explicit-any
   <M extends RequestMiddleware<any>[]>(
     middleware: M,
-    handler: RequestHandler<RequestMiddlewareContext<M>>
+    handler: RequestHandler<RequestMiddlewareContext<M>>,
   ): RequestHandler;
 }
 
-export const withMiddleware: WithMiddleware =
-  (middleware, handler) => (request, ctx) =>
+export const withMiddleware: WithMiddleware = (middleware, handler) =>
+  (request, ctx) =>
     // deno-lint-ignore no-explicit-any
     composeMiddleware(middleware)(request, ctx as any, () =>
       // deno-lint-ignore no-explicit-any
-      handler(request, ctx as any)
-    );
+      handler(request, ctx as any));

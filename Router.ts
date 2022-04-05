@@ -1,11 +1,11 @@
 import { Handler } from "https://deno.land/std@0.133.0/http/server.ts";
 import { withMiddleware } from "./composeMiddleware.ts";
 import {
-  RequestMiddleware,
-  RequestHandler,
-  RequestContext,
-  RegisterRequestHandler,
   HTTPMethods,
+  RegisterRequestHandler,
+  RequestContext,
+  RequestHandler,
+  RequestMiddleware,
 } from "./types.ts";
 interface Route {
   method: HTTPMethods;
@@ -61,7 +61,7 @@ export class Router {
   #registerHandler = (
     method: HTTPMethods,
     path: string,
-    handler: RequestHandler
+    handler: RequestHandler,
   ) => {
     const normalizedPath = path.replace(/\/+/g, "/").replace(/\/$/, "");
 
@@ -82,7 +82,7 @@ export class Router {
         const param = part.slice(1);
         if (params.has(param)) {
           throw new Error(
-            `Cannot specify param ${part} multiple times in URI: ${normalizedPath}`
+            `Cannot specify param ${part} multiple times in URI: ${normalizedPath}`,
           );
         }
         if (param === "path") {
@@ -91,9 +91,11 @@ export class Router {
 
         if (currentHandlers.glob?.methodHandlers[method]) {
           throw new Error(
-            `Cannot specify both param and glob at ${method} /${uriParts
-              .slice(0, currentHandlers.level)
-              .join("/")}/?`
+            `Cannot specify both param and glob at ${method} /${
+              uriParts
+                .slice(0, currentHandlers.level)
+                .join("/")
+            }/?`,
           );
         }
 
@@ -104,15 +106,15 @@ export class Router {
 
         if (currentHandlers.param.param !== param) {
           throw new Error(
-            `Cannot specify multiple params (:${currentHandlers.param.param}, :${param}) at same URI location`
+            `Cannot specify multiple params (:${currentHandlers.param.param}, :${param}) at same URI location`,
           );
         }
         params.add(param);
 
         currentHandlers = currentHandlers.param.handlers;
       } else {
-        currentHandlers.static[part] =
-          currentHandlers.static[part] ?? createHandlers(uri, currentHandlers);
+        currentHandlers.static[part] = currentHandlers.static[part] ??
+          createHandlers(uri, currentHandlers);
         currentHandlers = currentHandlers.static[part];
       }
     }
@@ -120,26 +122,28 @@ export class Router {
     if (glob) {
       if (currentHandlers.handlers?.methodHandlers[method]) {
         throw new Error(
-          `Cannot specify both param and glob at ${method} /${uriParts
-            .slice(0, currentHandlers.level)
-            .join("/")}/?`
+          `Cannot specify both param and glob at ${method} /${
+            uriParts
+              .slice(0, currentHandlers.level)
+              .join("/")
+          }/?`,
         );
       }
-      currentHandlers.glob =
-        currentHandlers.glob ?? createMethodHandlers(normalizedPath);
+      currentHandlers.glob = currentHandlers.glob ??
+        createMethodHandlers(normalizedPath);
       if (currentHandlers.glob.methodHandlers[method]) {
         throw new Error(
-          `Cannot specify multiple handlers for ${method}: ${normalizedPath}`
+          `Cannot specify multiple handlers for ${method}: ${normalizedPath}`,
         );
       }
 
       currentHandlers.glob.methodHandlers[method] = handler;
     } else {
-      currentHandlers.handlers =
-        currentHandlers.handlers ?? createMethodHandlers(normalizedPath);
+      currentHandlers.handlers = currentHandlers.handlers ??
+        createMethodHandlers(normalizedPath);
       if (currentHandlers.handlers.methodHandlers[method]) {
         throw new Error(
-          `Cannot specify multiple handlers for ${method}: ${normalizedPath}`
+          `Cannot specify multiple handlers for ${method}: ${normalizedPath}`,
         );
       }
 
@@ -189,8 +193,8 @@ export class Router {
         currentHandlers = currentHandlers.parent;
       }
 
-      const handler =
-        currentHandlers.glob?.methodHandlers[method] ?? handleNotFound;
+      const handler = currentHandlers.glob?.methodHandlers[method] ??
+        handleNotFound;
 
       context.path = currentHandlers.glob?.uri ?? "/*";
 
@@ -199,20 +203,20 @@ export class Router {
       return handler(request, context);
     }
 
-    const handler =
-      currentHandlers.handlers?.methodHandlers[method] ?? handleNotFound;
+    const handler = currentHandlers.handlers?.methodHandlers[method] ??
+      handleNotFound;
 
     context.path = currentHandlers.handlers?.uri ?? "/*";
     return handler(request, context);
   };
 
   #createRegisterRequestHandler = (
-    method: HTTPMethods
+    method: HTTPMethods,
   ): RegisterRequestHandler =>
     ((
       path: string,
       middleware_: RequestMiddleware[] | RequestHandler,
-      handler_?: RequestHandler
+      handler_?: RequestHandler,
     ) => {
       const middleware = handler_ ? (middleware_ as RequestMiddleware[]) : [];
       const handler = handler_ ?? (middleware_ as RequestHandler);
@@ -233,7 +237,7 @@ export class Router {
       this.#registerHandler(
         route.method,
         [path, route.path].join("/"),
-        route.handler
+        route.handler,
       );
     }
   }
